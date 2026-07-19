@@ -186,6 +186,11 @@ function subscribeRealtime(){
     .channel('trip_state_changes')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trip_state', filter: `id=eq.${TRIP_ID}` }, payload => {
       if (payload.new && payload.new.data){
+        // If the user is actively typing/selecting in a field, don't touch state or
+        // re-render — that would rebuild the page mid-keystroke and kick them out of
+        // the field (this includes echoes of the user's OWN save bouncing back).
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
         const activeTab = state.activeTab, activeDay = state.activeDay;
         state = payload.new.data;
         state.activeTab = activeTab; state.activeDay = activeDay;
