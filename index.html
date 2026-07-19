@@ -185,6 +185,25 @@ function setBanner(msg){
   document.getElementById('banner').innerHTML = msg ? `<div class="banner">${esc(msg)}</div>` : "";
 }
 
+// Only genuine http(s) links become clickable <a> tags. Since anyone with the
+// site link can type into these fields, this avoids ever turning arbitrary
+// pasted text (e.g. a "javascript:" URI) into something clickable.
+function safeLinkHref(url){
+  if (!url) return null;
+  const trimmed = String(url).trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+}
+
+function linkDisplayHtml(url, fontSize){
+  if (!url) return "";
+  const href = safeLinkHref(url);
+  const size = fontSize || "13px";
+  if (href){
+    return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:var(--forest);text-decoration:underline;font-size:${size};word-break:break-all;">&#128279; ${esc(url)}</a>`;
+  }
+  return `<span style="color:var(--muted);font-size:${size};word-break:break-all;">&#128279; ${esc(url)}</span>`;
+}
+
 function esc(s){
   return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -368,22 +387,28 @@ function infoField(d, field, label){
 function renderActivityRow(d, a, ai){
   const flags = uiFlags[a.id] || {};
   const editing = flags.editing;
-  const expanded = flags.expanded;
+  const rowBg = ai % 2 === 0 ? "var(--white)" : "rgba(212,168,75,0.07)";
   const textEl = editing
-    ? `<input class="field" style="border:none;border-bottom:1px solid var(--gold);border-radius:0;" value="${esc(a.text)}" oninput="updateActivity('${d.id}','${a.id}','text',this.value)">`
-    : `<span style="font-size:14px;">${esc(a.text)}</span>`;
-  const sub = expanded ? `
-    <div style="padding:10px 0 4px 20px;">
-      <input class="field" placeholder="https://..." style="margin-bottom:6px;" value="${esc(a.link)}" ${editing?'':'readonly'} oninput="updateActivity('${d.id}','${a.id}','link',this.value)">
-      <textarea class="field" rows="2" placeholder="Notes" ${editing?'':'readonly'} oninput="updateActivity('${d.id}','${a.id}','notes',this.value)">${esc(a.notes)}</textarea>
-    </div>` : "";
-  return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;"></span>
+    ? `<input class="field" style="border:none;border-bottom:1px solid var(--gold);border-radius:0;font-size:16px;padding:4px 0;" value="${esc(a.text)}" oninput="updateActivity('${d.id}','${a.id}','text',this.value)">`
+    : `<span style="font-size:16px;line-height:1.4;">${esc(a.text)}</span>`;
+
+  const sub = editing ? `
+    <div style="padding:10px 0 2px 18px;">
+      <input class="field" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://..." style="margin-bottom:4px;font-size:15px;padding:8px;" value="${esc(a.link)}" oninput="updateActivity('${d.id}','${a.id}','link',this.value)">
+      ${a.link ? `<div style="margin-bottom:6px;">${linkDisplayHtml(a.link, '13px')}</div>` : ""}
+      <textarea class="field" rows="2" placeholder="Notes" style="font-size:15px;padding:8px;" oninput="updateActivity('${d.id}','${a.id}','notes',this.value)">${esc(a.notes)}</textarea>
+    </div>` : ((a.link || a.notes) ? `
+    <div style="padding:8px 0 2px 18px;font-size:14px;color:var(--muted);">
+      ${a.link ? `<div style="margin-bottom:4px;">${linkDisplayHtml(a.link, '14px')}</div>` : ""}
+      ${a.notes ? `<div>${esc(a.notes)}</div>` : ""}
+    </div>` : "");
+
+  return `<div style="padding:12px 10px;border-bottom:1px solid var(--border);background:${rowBg};border-radius:6px;margin-bottom:2px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;"></span>
       <div style="flex:1;">${textEl}</div>
-      <button class="icon-btn" onclick="toggleFlag('${a.id}','expanded')">${expanded ? '&#9650;' : '&#9660;'}</button>
-      <button class="icon-btn" onclick="toggleFlag('${a.id}','editing')">&#9998;</button>
-      <button class="icon-btn" style="color:var(--high);" onclick="deleteActivity('${d.id}','${a.id}')">&#128465;</button>
+      <button class="icon-btn" style="font-size:18px;padding:6px;${editing?'color:var(--forest);':''}" onclick="toggleFlag('${a.id}','editing')" title="${editing ? 'Done editing' : 'Edit'}">${editing ? '&#10003;' : '&#9998;'}</button>
+      <button class="icon-btn" style="font-size:18px;padding:6px;color:var(--high);" onclick="deleteActivity('${d.id}','${a.id}')" title="Delete">&#128465;</button>
     </div>
     ${sub}
   </div>`;
@@ -495,7 +520,8 @@ function renderTaskCard(t){
     : `<span style="font-style:italic;color:var(--mlabel);font-size:13px;">Unassigned</span>`;
   const sub = flags.expanded ? `
     <div style="margin-top:8px;">
-      <input class="field" placeholder="https://..." style="margin-bottom:6px;font-size:13px;" value="${esc(t.link)}" oninput="updateTask('${t.id}','link',this.value)">
+      <input class="field" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://..." style="margin-bottom:4px;font-size:13px;" value="${esc(t.link)}" oninput="updateTask('${t.id}','link',this.value)">
+      ${t.link ? `<div style="margin-bottom:6px;">${linkDisplayHtml(t.link, '12px')}</div>` : ""}
       <textarea class="field" rows="2" placeholder="Notes" style="font-size:13px;" oninput="updateTask('${t.id}','notes',this.value)">${esc(t.notes)}</textarea>
     </div>` : "";
 
