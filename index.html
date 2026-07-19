@@ -33,6 +33,17 @@
 </head>
 <body>
 
+<div id="login-overlay" style="position:fixed;inset:0;background:var(--cream);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div class="card" style="max-width:340px;width:100%;padding:32px 28px;text-align:center;">
+    <h1 class="heading" style="font-size:22px;color:var(--navy);margin:0 0 6px;">Colorado Boys Trip 2026</h1>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 20px;">Enter the trip password to continue</p>
+    <input id="login-user" class="field" placeholder="Username" style="margin-bottom:10px;" autocomplete="username">
+    <input id="login-pass" type="password" class="field" placeholder="Password" style="margin-bottom:14px;" autocomplete="current-password">
+    <button class="btn primary" style="width:100%;" onclick="attemptLogin()">Enter</button>
+    <div id="login-error" style="color:var(--high);font-size:13px;margin-top:10px;min-height:16px;"></div>
+  </div>
+</div>
+
 <div id="banner"></div>
 
 <div style="min-height:100vh;background:var(--cream);">
@@ -570,7 +581,31 @@ function deleteTask(id){
   scheduleSave(); render();
 }
 
-loadState();
+const AUTH_USER = "Admin";
+const AUTH_PASS = "Quarry";
+const AUTH_KEY = "tripPlannerAuthed";
+
+function attemptLogin(){
+  const u = document.getElementById('login-user').value;
+  const p = document.getElementById('login-pass').value;
+  if (u === AUTH_USER && p === AUTH_PASS){
+    localStorage.setItem(AUTH_KEY, "true");
+    document.getElementById('login-overlay').style.display = "none";
+    loadState();
+  } else {
+    document.getElementById('login-error').textContent = "Incorrect username or password.";
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+if (localStorage.getItem(AUTH_KEY) === "true"){
+  document.getElementById('login-overlay').style.display = "none";
+  loadState();
+} else {
+  document.getElementById('login-user').focus();
+}
 </script>
 </body>
 </html>
