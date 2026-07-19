@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colorado Boys Trip 2026</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --navy:#1a2b3c; --gold:#d4a84b; --forest:#2d5a3d; --cream:#f5f2ea;
+    --white:#ffffff; --border:#e0dbc8; --muted:#6b7a82; --body:#22303c; --mlabel:#8a9198;
+    --high:#b8542f; --high-bg:#f3e0d6; --med:#a8792a; --med-bg:#f2e6cf; --low:#4d6b58; --low-bg:#e3ead9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--cream);color:var(--body);font-family:Barlow,system-ui,-apple-system,sans-serif;}
+  h1,h2,h3,.heading{font-family:'Barlow Condensed',sans-serif;font-weight:700;}
+  input,select,textarea,button{font-family:inherit;}
+  ::selection{background:var(--gold);color:var(--navy);}
+  .card{background:var(--white);border-radius:10px;box-shadow:0 6px 20px rgba(26,43,60,0.08);}
+  .field{border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:14px;width:100%;}
+  .field:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  button{cursor:pointer;}
+  .btn{border:1px solid var(--navy);background:var(--white);color:var(--navy);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;}
+  .btn.primary{background:var(--navy);color:var(--white);}
+  .btn.pill{border-radius:20px;}
+  .icon-btn{border:none;background:none;cursor:pointer;padding:4px;color:var(--muted);font-size:14px;}
+  .icon-btn:hover{color:var(--navy);}
+  .banner{background:#fff4de;border:1px solid #e8c98a;color:#5c4a1a;padding:10px 16px;font-size:13px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="banner"></div>
+
+<div style="min-height:100vh;background:var(--cream);">
+  <div style="position:sticky;top:0;z-index:20;background:var(--navy);box-shadow:0 2px 12px rgba(0,0,0,0.15);padding:14px 20px;position:relative;overflow:hidden;">
+    <span style="position:absolute;bottom:-10px;left:-30px;width:0;height:0;border-left:90px solid transparent;border-right:90px solid transparent;border-bottom:70px solid rgba(255,255,255,0.045);pointer-events:none;"></span>
+    <span style="position:absolute;bottom:-10px;left:60px;width:0;height:0;border-left:110px solid transparent;border-right:110px solid transparent;border-bottom:90px solid rgba(255,255,255,0.06);pointer-events:none;"></span>
+    <span style="position:absolute;bottom:-10px;right:-20px;width:0;height:0;border-left:130px solid transparent;border-right:130px solid transparent;border-bottom:80px solid rgba(255,255,255,0.04);pointer-events:none;"></span>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;position:relative;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <span class="heading" style="font-size:24px;letter-spacing:0.3px;color:var(--cream);">Colorado Boys Trip 2026</span>
+        <span style="font-size:13px;color:var(--gold);font-weight:600;">Sep 9–13 · Golden, CO</span>
+      </div>
+      <div style="font-size:13px;color:#9fb0bb;" id="countdown-header"></div>
+    </div>
+    <div style="display:flex;gap:2px;overflow-x:auto;padding-top:10px;" id="tabs"></div>
+  </div>
+
+  <div style="max-width:1100px;margin:0 auto;padding:24px 18px 80px;" id="content"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ===================== CONFIG =====================
+   Paste your Supabase project URL and anon key below to enable shared,
+   synced storage. Leave them as-is to run in local-only mode (each
+   browser keeps its own copy, nothing is shared). */
+const SUPABASE_URL = "https://ajktwcuchcsuzisonobj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_tnC2Wp08tiawRh_fOBq0Sw_n_6RAta8";
+const TRIP_ID = "colorado-2026";
+/* ==================================================== */
+
+const LOCAL_KEY = "coloradoTripPlanner2026";
+let sb = null;
+let cloudMode = false;
+if (SUPABASE_URL && SUPABASE_URL.indexOf("YOUR_SUPABASE") !== 0 && SUPABASE_ANON_KEY.indexOf("YOUR_SUPABASE") !== 0) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  cloudMode = true;
+}
+
+function seedState(){
+  return {
+    trip: { name: "Colorado Boys Trip 2026", start_date: "2026-09-09", end_date: "2026-09-13", home_base: "Golden, CO" },
+    activeTab: "dashboard",
+    activeDay: 0,
+    days: [
+      { id: "d1", date_label: "WED, SEP 9", title: "Travel & Arrival", start_time: "", drive_time: "", status: "planned",
+        has_hike: false, hike_name:"", hike_distance:"", hike_difficulty:"", hike_duration:"", hike_gain:"",
+        meals:"", parking:"", reservations:"", responsible:"", maps_link:"", backup:"", weather_notes:"", clothing:"", comments:"",
+        activities: [] },
+      { id: "d2", date_label: "THU, SEP 10", title: "Golden, Mount Falcon & Red Rocks", start_time: "9:00 AM", drive_time: "15 min", status: "planned",
+        has_hike: true, hike_name: "Mount Falcon: Turkey Trot + Castle Trail", hike_distance: "4-5 miles", hike_difficulty: "Moderate", hike_duration: "2-3 hours", hike_gain: "Foothill views",
+        meals:"Breakfast + dinner in Golden", parking:"Mount Falcon trailhead lot; arrive early if possible", reservations:"None required", responsible:"", maps_link:"", backup:"", weather_notes:"", clothing:"", comments:"",
+        activities: [
+          { id:"a1", text:"Late breakfast in Golden after the midnight arrival", link:"", notes:"" },
+          { id:"a2", text:"Hike late morning or early afternoon", link:"", notes:"" },
+          { id:"a3", text:"Visit Red Rocks Amphitheatre", link:"", notes:"" },
+          { id:"a4", text:"Visit Lookout Mountain", link:"", notes:"" },
+          { id:"a5", text:"Dinner and drinks in downtown Golden", link:"", notes:"" }
+        ]},
+      { id: "d3", date_label: "FRI, SEP 11", title: "Rocky Mountain National Park", start_time: "", drive_time: "", status: "planned",
+        has_hike:false, hike_name:"", hike_distance:"", hike_difficulty:"", hike_duration:"", hike_gain:"",
+        meals:"", parking:"", reservations:"RMNP timed entry + Bear Lake permit", responsible:"", maps_link:"", backup:"", weather_notes:"", clothing:"", comments:"",
+        activities: [] },
+      { id: "d4", date_label: "SAT, SEP 12", title: "Day 4", start_time: "", drive_time: "", status: "planned",
+        has_hike:false, hike_name:"", hike_distance:"", hike_difficulty:"", hike_duration:"", hike_gain:"",
+        meals:"", parking:"", reservations:"", responsible:"", maps_link:"", backup:"", weather_notes:"", clothing:"", comments:"",
+        activities: [] },
+      { id: "d5", date_label: "SUN, SEP 13", title: "Departure", start_time: "", drive_time: "", status: "planned",
+        has_hike:false, hike_name:"", hike_distance:"", hike_difficulty:"", hike_duration:"", hike_gain:"",
+        meals:"", parking:"", reservations:"", responsible:"", maps_link:"", backup:"", weather_notes:"", clothing:"", comments:"",
+        activities: [] }
+    ],
+    tasks: [
+      { id:"t1", title:"Confirm all flights", owner:"", due_date:"2026-08-01", priority:"high", status:"todo", link:"", notes:"" },
+      { id:"t2", title:"Collect payments", owner:"", due_date:"2026-09-05", priority:"medium", status:"todo", link:"", notes:"" },
+      { id:"t3", title:"Confirm drivers", owner:"", due_date:"2026-09-01", priority:"medium", status:"todo", link:"", notes:"" },
+      { id:"t4", title:"Prepare emergency contacts", owner:"", due_date:"2026-09-01", priority:"low", status:"todo", link:"", notes:"" },
+      { id:"t5", title:"Check weather", owner:"", due_date:"2026-09-07", priority:"low", status:"todo", link:"", notes:"" },
+      { id:"t6", title:"Reserve rental cars (x2)", owner:"", due_date:"2026-07-25", priority:"high", status:"inprogress", link:"", notes:"" },
+      { id:"t7", title:"RMNP timed entry + Bear Lake permit", owner:"", due_date:"2026-08-01", priority:"high", status:"inprogress", link:"", notes:"" },
+      { id:"t8", title:"Pikes Peak / Cog Railway tickets", owner:"", due_date:"2026-08-15", priority:"medium", status:"inprogress", link:"", notes:"" },
+      { id:"t9", title:"Choose restaurants", owner:"", due_date:"2026-09-01", priority:"low", status:"inprogress", link:"", notes:"" },
+      { id:"t10", title:"Book Airbnb", owner:"", due_date:"2026-07-25", priority:"high", status:"done", link:"", notes:"" }
+    ]
+  };
+}
+
+let state = null;
+let uiFlags = {}; // transient: { [rowId]: { editing:bool, expanded:bool } }
+let saveTimer = null;
+
+async function loadState(){
+  if (cloudMode){
+    try{
+      const { data, error } = await sb.from('trip_state').select('data').eq('id', TRIP_ID).maybeSingle();
+      if (error) throw error;
+      if (data && data.data){
+        state = data.data;
+      } else {
+        state = seedState();
+        await sb.from('trip_state').insert({ id: TRIP_ID, data: state });
+      }
+      subscribeRealtime();
+      setBanner("");
+    } catch(e){
+      console.error(e);
+      setBanner("Couldn't reach the shared database. Working from a local copy until it reconnects.");
+      state = loadLocal() || seedState();
+    }
+  } else {
+    setBanner("Not connected to a shared database yet — edits only save in this browser. Add your Supabase URL and key in the file to enable sharing.");
+    state = loadLocal() || seedState();
+  }
+  render();
+}
+
+function loadLocal(){
+  try{ const raw = localStorage.getItem(LOCAL_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 400);
+}
+
+async function saveState(){
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
+  if (cloudMode){
+    try{
+      await sb.from('trip_state').update({ data: state, updated_at: new Date().toISOString() }).eq('id', TRIP_ID);
+    } catch(e){ console.error("save failed", e); }
+  }
+}
+
+let realtimeSub = null;
+function subscribeRealtime(){
+  if (realtimeSub) return;
+  realtimeSub = sb
+    .channel('trip_state_changes')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trip_state', filter: `id=eq.${TRIP_ID}` }, payload => {
+      if (payload.new && payload.new.data){
+        const activeTab = state.activeTab, activeDay = state.activeDay;
+        state = payload.new.data;
+        state.activeTab = activeTab; state.activeDay = activeDay;
+        render();
+      }
+    })
+    .subscribe();
+}
+
+function setBanner(msg){
+  document.getElementById('banner').innerHTML = msg ? `<div class="banner">${esc(msg)}</div>` : "";
+}
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function daysUntil(dateStr){
+  const target = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  const diff = Math.ceil((target - now) / (1000*60*60*24));
+  return diff;
+}
+
+/* ===================== RENDER ===================== */
+
+function render(){
+  renderTabs();
+  document.getElementById('countdown-header').textContent = daysUntil(state.trip.start_date) + " days to go";
+  const el = document.getElementById('content');
+  if (state.activeTab === 'dashboard') el.innerHTML = renderDashboard();
+  else if (state.activeTab === 'itinerary') el.innerHTML = renderItinerary();
+  else el.innerHTML = renderTasks();
+}
+
+function renderTabs(){
+  const tabs = [['dashboard','Dashboard'],['itinerary','Itinerary'],['tasks','Tasks']];
+  document.getElementById('tabs').innerHTML = tabs.map(([key,label]) => {
+    const active = state.activeTab === key;
+    const style = active
+      ? "background:var(--cream);color:var(--navy);"
+      : "background:transparent;color:#c9d3da;";
+    return `<button class="btn pill" style="${style}border:none;padding:8px 14px;font-size:14px;font-weight:600;white-space:nowrap;" onclick="setTab('${key}')">
+      <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;margin-right:7px;"></span>${label}
+    </button>`;
+  }).join("");
+}
+
+function sectionHeading(title, shape){
+  return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <span style="width:36px;height:36px;border-radius:8px;background:var(--navy);flex-shrink:0;display:flex;align-items:center;justify-content:center;">${shape}</span>
+    <h1 style="font-size:26px;margin:0;padding-bottom:6px;border-bottom:3px solid var(--gold);">${esc(title)}</h1>
+  </div>`;
+}
+
+function renderDashboard(){
+  const openTasks = state.tasks.filter(t => t.status !== 'done').length;
+  const squareIcon = `<span style="width:16px;height:16px;border-radius:3px;border:2.5px solid var(--gold);"></span>`;
+  const rows = state.days.map((d,i) => `
+    <div class="card" style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;" onclick="goToDay(${i})">
+      <div>
+        <div style="font-size:12px;color:var(--gold);font-weight:700;letter-spacing:0.4px;">${esc(d.date_label)}</div>
+        <div class="heading" style="font-size:20px;color:var(--navy);">${esc(d.title)}</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);">View day &rarr;</div>
+    </div>`).join("");
+
+  return sectionHeading("Trip Dashboard", squareIcon) + `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:28px;">
+      <div class="card" style="background:var(--navy);color:var(--cream);padding:18px 22px;">
+        <div style="color:var(--gold);font-size:20px;">&#9650;</div>
+        <div style="font-size:11px;letter-spacing:0.5px;color:#9fb0bb;margin-top:8px;">COUNTDOWN</div>
+        <div class="heading" style="font-size:32px;color:var(--gold);">${daysUntil(state.trip.start_date)}</div>
+        <div style="font-size:13px;color:#c9d3da;">days until ${esc(state.trip.home_base.split(',')[0])}</div>
+      </div>
+      <div class="card" style="padding:18px 22px;">
+        <div>${squareIcon}</div>
+        <div style="font-size:11px;letter-spacing:0.5px;color:var(--mlabel);margin-top:8px;">OPEN TASKS</div>
+        <div class="heading" style="font-size:32px;color:var(--navy);">${openTasks}</div>
+        <div style="font-size:13px;color:var(--muted);">still to do</div>
+      </div>
+      <div class="card" style="padding:18px 22px;">
+        <div><span style="width:16px;height:16px;border-radius:50%;border:2.5px solid var(--forest);display:inline-block;"></span></div>
+        <div style="font-size:11px;letter-spacing:0.5px;color:var(--mlabel);margin-top:8px;">TRIP LENGTH</div>
+        <div class="heading" style="font-size:32px;color:var(--navy);">${state.days.length}</div>
+        <div style="font-size:13px;color:var(--muted);">days in Colorado</div>
+      </div>
+    </div>
+    <h3 style="font-size:16px;color:var(--navy);margin-bottom:10px;">Trip at a glance</h3>
+    ${rows}
+  `;
+}
+
+function goToDay(i){ state.activeDay = i; state.activeTab = 'itinerary'; render(); }
+function setTab(t){ state.activeTab = t; render(); }
+
+function renderItinerary(){
+  const mapIcon = `<span style="width:16px;height:16px;border:2.5px solid var(--gold);border-radius:2px;"></span>`;
+  const dayPills = state.days.map((d,i) => {
+    const active = i === state.activeDay;
+    const style = active
+      ? "background:var(--navy);color:var(--gold);box-shadow:0 4px 12px rgba(26,43,60,0.2);"
+      : "background:var(--white);color:var(--navy);border:1px solid var(--navy);";
+    return `<button onclick="setActiveDay(${i})" style="${style}border-radius:8px;padding:8px 14px;text-align:center;font-size:12px;cursor:pointer;min-width:70px;">
+      <div style="font-size:10px;letter-spacing:0.4px;">DAY ${i+1}</div>
+      <div style="font-weight:600;">${esc(d.date_label.split(',')[0])}</div>
+    </button>`;
+  }).join("");
+
+  const d = state.days[state.activeDay];
+  const activities = d.activities.map((a,ai) => renderActivityRow(d, a, ai)).join("");
+
+  const hikeBlock = d.has_hike ? `
+    <div style="background:var(--low-bg);border-radius:8px;padding:16px 20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.4px;color:var(--forest);font-weight:700;margin-bottom:6px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--forest);"></span>HIGHLIGHTED HIKE
+      </div>
+      <input class="field heading" style="border:none;background:none;font-size:19px;color:var(--body);padding:0;margin-bottom:10px;" value="${esc(d.hike_name)}" oninput="updateDay('${d.id}','hike_name',this.value)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${['hike_distance','hike_difficulty','hike_duration','hike_gain'].map(f => `<input class="field pill" style="width:auto;min-width:90px;border-radius:20px;text-align:center;font-size:13px;" value="${esc(d[f])}" oninput="updateDay('${d.id}','${f}',this.value)">`).join("")}
+      </div>
+    </div>` : `<button class="btn" style="margin-bottom:20px;" onclick="updateDay('${d.id}','has_hike',true)">+ Add highlighted hike</button>`;
+
+  return sectionHeading("Day-by-day itinerary", mapIcon) + `
+    <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;">${dayPills}</div>
+    <div class="card" style="overflow:hidden;">
+      <div style="background:var(--navy);color:var(--cream);padding:20px 22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div style="width:80px;height:80px;border:2px dashed rgba(255,255,255,0.3);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9fb0bb;text-align:center;">photo</div>
+        <div style="flex:1;min-width:180px;">
+          <input class="field heading" style="background:none;border:none;color:var(--cream);font-size:22px;padding:0;" value="${esc(d.title)}" oninput="updateDay('${d.id}','title',this.value)">
+          <div style="display:flex;gap:6px;margin-top:6px;font-size:13px;color:#c9d3da;">
+            Start <input class="field" style="width:90px;background:rgba(255,255,255,0.1);border:none;color:var(--cream);" value="${esc(d.start_time)}" oninput="updateDay('${d.id}','start_time',this.value)">
+            &middot; Drive ~<input class="field" style="width:80px;background:rgba(255,255,255,0.1);border:none;color:var(--cream);" value="${esc(d.drive_time)}" oninput="updateDay('${d.id}','drive_time',this.value)">
+          </div>
+        </div>
+        <select class="field pill" style="width:auto;" onchange="updateDay('${d.id}','status',this.value)">
+          ${['planned','confirmed','final'].map(s => `<option value="${s}" ${d.status===s?'selected':''}>${s[0].toUpperCase()+s.slice(1)}</option>`).join("")}
+        </select>
+      </div>
+      <div style="padding:22px;">
+        ${hikeBlock}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:11px;letter-spacing:0.5px;color:var(--mlabel);font-weight:600;">ACTIVITIES</div>
+          <button class="btn pill" onclick="addActivity('${d.id}')">+ Add</button>
+        </div>
+        ${activities || '<div style="color:var(--muted);font-size:14px;margin-bottom:12px;">No activities yet.</div>'}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);">
+          ${infoField(d,'meals','Meals')} ${infoField(d,'parking','Parking')} ${infoField(d,'reservations','Reservations needed')}
+          ${infoField(d,'responsible','Responsible')} ${infoField(d,'maps_link','Maps')} ${infoField(d,'backup','Backup plan')}
+          ${infoField(d,'weather_notes','Weather notes')} ${infoField(d,'clothing','Gear/clothing')}
+        </div>
+        <div style="margin-top:16px;">
+          <div style="font-size:11px;letter-spacing:0.5px;color:var(--mlabel);font-weight:600;margin-bottom:6px;">GROUP COMMENTS</div>
+          <textarea class="field" rows="3" oninput="updateDay('${d.id}','comments',this.value)">${esc(d.comments)}</textarea>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function infoField(d, field, label){
+  return `<div>
+    <div style="font-size:11px;letter-spacing:0.4px;color:var(--mlabel);margin-bottom:4px;">${esc(label).toUpperCase()}</div>
+    <input class="field" style="border:none;border-bottom:1px dashed var(--border);border-radius:0;padding:4px 0;" value="${esc(d[field])}" oninput="updateDay('${d.id}','${field}',this.value)">
+  </div>`;
+}
+
+function renderActivityRow(d, a, ai){
+  const flags = uiFlags[a.id] || {};
+  const editing = flags.editing;
+  const expanded = flags.expanded;
+  const textEl = editing
+    ? `<input class="field" style="border:none;border-bottom:1px solid var(--gold);border-radius:0;" value="${esc(a.text)}" oninput="updateActivity('${d.id}','${a.id}','text',this.value)">`
+    : `<span style="font-size:14px;">${esc(a.text)}</span>`;
+  const sub = expanded ? `
+    <div style="padding:10px 0 4px 20px;">
+      <input class="field" placeholder="https://..." style="margin-bottom:6px;" value="${esc(a.link)}" ${editing?'':'readonly'} oninput="updateActivity('${d.id}','${a.id}','link',this.value)">
+      <textarea class="field" rows="2" placeholder="Notes" ${editing?'':'readonly'} oninput="updateActivity('${d.id}','${a.id}','notes',this.value)">${esc(a.notes)}</textarea>
+    </div>` : "";
+  return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;"></span>
+      <div style="flex:1;">${textEl}</div>
+      <button class="icon-btn" onclick="toggleFlag('${a.id}','expanded')">${expanded ? '&#9650;' : '&#9660;'}</button>
+      <button class="icon-btn" onclick="toggleFlag('${a.id}','editing')">&#9998;</button>
+      <button class="icon-btn" style="color:var(--high);" onclick="deleteActivity('${d.id}','${a.id}')">&#128465;</button>
+    </div>
+    ${sub}
+  </div>`;
+}
+
+function toggleFlag(id, key){
+  uiFlags[id] = uiFlags[id] || {};
+  uiFlags[id][key] = !uiFlags[id][key];
+  render();
+}
+
+function setActiveDay(i){ state.activeDay = i; render(); }
+
+function updateDay(dayId, field, value){
+  const d = state.days.find(x => x.id === dayId);
+  d[field] = value;
+  scheduleSave();
+  if (field === 'status' || field === 'has_hike') render();
+}
+
+function addActivity(dayId){
+  const d = state.days.find(x => x.id === dayId);
+  const id = 'a' + Date.now();
+  d.activities.push({ id, text: "", link: "", notes: "" });
+  uiFlags[id] = { editing: true, expanded: false };
+  scheduleSave(); render();
+}
+
+function updateActivity(dayId, actId, field, value){
+  const d = state.days.find(x => x.id === dayId);
+  const a = d.activities.find(x => x.id === actId);
+  a[field] = value;
+  scheduleSave();
+}
+
+function deleteActivity(dayId, actId){
+  const d = state.days.find(x => x.id === dayId);
+  d.activities = d.activities.filter(x => x.id !== actId);
+  scheduleSave(); render();
+}
+
+function renderTasks(){
+  const boardIcon = `<span style="width:16px;height:16px;border:2.5px solid var(--gold);border-radius:3px;"></span>`;
+  const cols = [
+    ['todo','TO DO','#e8e4d6'], ['inprogress','IN PROGRESS','var(--med-bg)'], ['done','COMPLETED','var(--low-bg)']
+  ];
+  const colHtml = cols.map(([key,label,bg]) => {
+    const items = state.tasks.filter(t => t.status === key);
+    return `<div style="background:${bg};border-radius:10px;padding:14px;flex:1;min-width:260px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.4px;color:var(--navy);">${label}</div>
+        <div style="background:var(--navy);color:var(--cream);font-size:11px;border-radius:10px;padding:2px 8px;">${items.length}</div>
+      </div>
+      ${items.map(t => renderTaskCard(t)).join("")}
+    </div>`;
+  }).join("");
+
+  return sectionHeading("Tasks & responsibilities", boardIcon) + `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;gap:16px;font-size:13px;color:var(--muted);">
+        <span>Priority:</span>
+        <span><span style="width:8px;height:8px;border-radius:50%;background:var(--high);display:inline-block;"></span> High</span>
+        <span><span style="width:8px;height:8px;border-radius:50%;background:var(--med);display:inline-block;"></span> Medium</span>
+        <span><span style="width:8px;height:8px;border-radius:50%;background:var(--low);display:inline-block;"></span> Low</span>
+      </div>
+      <button class="btn primary" onclick="addTask()">+ Add task</button>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">${colHtml}</div>
+  `;
+}
+
+function priorityColor(p){ return p === 'high' ? 'var(--high)' : p === 'medium' ? 'var(--med)' : 'var(--low)'; }
+function priorityBg(p){ return p === 'high' ? 'var(--high-bg)' : p === 'medium' ? 'var(--med-bg)' : 'var(--low-bg)'; }
+
+function renderTaskCard(t){
+  const flags = uiFlags[t.id] || {};
+  const initial = t.owner ? esc(t.owner.trim()[0].toUpperCase()) : "";
+  const ownerHtml = t.owner
+    ? `<span style="width:22px;height:22px;border-radius:50%;background:var(--navy);color:var(--cream);font-size:11px;display:inline-flex;align-items:center;justify-content:center;margin-right:6px;">${initial}</span><span style="font-size:13px;">${esc(t.owner)}</span>`
+    : `<span style="font-style:italic;color:var(--mlabel);font-size:13px;">Unassigned</span>`;
+  const sub = flags.expanded ? `
+    <div style="margin-top:8px;">
+      <input class="field" placeholder="https://..." style="margin-bottom:6px;font-size:13px;" value="${esc(t.link)}" oninput="updateTask('${t.id}','link',this.value)">
+      <textarea class="field" rows="2" placeholder="Notes" style="font-size:13px;" oninput="updateTask('${t.id}','notes',this.value)">${esc(t.notes)}</textarea>
+    </div>` : "";
+
+  return `<div class="card" style="border-left:4px solid ${priorityColor(t.priority)};padding:12px 14px;margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <input class="field" style="border:none;flex:1;font-weight:600;font-size:14px;padding:2px 0;" value="${esc(t.title)}" oninput="updateTask('${t.id}','title',this.value)">
+      <button class="icon-btn" onclick="toggleFlag('${t.id}','expanded')">${flags.expanded ? '&#9650;' : '&#9660;'}</button>
+      <button class="icon-btn" style="color:var(--high);" onclick="deleteTask('${t.id}')">&#128465;</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap;">
+      <input class="field" style="width:auto;flex:1;min-width:90px;border:none;background:none;padding:2px 0;" value="${esc(t.owner)}" placeholder="Assign to..." oninput="updateTask('${t.id}','owner',this.value)">
+      <input type="date" class="field" style="width:auto;font-size:12px;" value="${esc(t.due_date)}" oninput="updateTask('${t.id}','due_date',this.value)">
+    </div>
+    <div style="margin-bottom:8px;">
+      <select class="field pill" style="width:auto;background:${priorityBg(t.priority)};color:${priorityColor(t.priority)};font-weight:600;font-size:12px;border:none;" onchange="updateTask('${t.id}','priority',this.value)">
+        ${['low','medium','high'].map(p => `<option value="${p}" ${t.priority===p?'selected':''}>${p.toUpperCase()}</option>`).join("")}
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;">
+      ${['todo','inprogress','done'].map(s => {
+        const label = s==='todo'?'To Do':s==='inprogress'?'In Prog.':'Done';
+        const active = t.status === s;
+        return `<button class="btn" style="flex:1;font-size:11px;padding:5px 4px;${active?'background:var(--navy);color:var(--cream);':''}" onclick="updateTask('${t.id}','status','${s}')">${label}</button>`;
+      }).join("")}
+    </div>
+    ${sub}
+  </div>`;
+}
+
+function addTask(){
+  const id = 't' + Date.now();
+  state.tasks.push({ id, title:"", owner:"", due_date:"", priority:"low", status:"todo", link:"", notes:"" });
+  scheduleSave(); render();
+}
+function updateTask(id, field, value){
+  const t = state.tasks.find(x => x.id === id);
+  t[field] = value;
+  scheduleSave();
+  if (field === 'status' || field === 'priority') render();
+}
+function deleteTask(id){
+  state.tasks = state.tasks.filter(x => x.id !== id);
+  scheduleSave(); render();
+}
+
+loadState();
+</script>
+</body>
+</html>
