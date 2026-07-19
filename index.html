@@ -17,14 +17,17 @@
   input,select,textarea,button{font-family:inherit;}
   ::selection{background:var(--gold);color:var(--navy);}
   .card{background:var(--white);border-radius:10px;box-shadow:0 6px 20px rgba(26,43,60,0.08);}
-  .field{border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:14px;width:100%;}
+  .field{border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:16px;width:100%;transition:border-color 0.15s;}
+  .field:hover{border-color:#c9c2a8;}
   .field:focus{outline:2px solid var(--gold);outline-offset:1px;}
   button{cursor:pointer;}
-  .btn{border:1px solid var(--navy);background:var(--white);color:var(--navy);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;}
+  .btn{border:1px solid var(--navy);background:var(--white);color:var(--navy);border-radius:6px;padding:8px 14px;font-size:14px;font-weight:600;min-height:40px;transition:background 0.15s;}
+  .btn:hover{background:rgba(26,43,60,0.05);}
   .btn.primary{background:var(--navy);color:var(--white);}
+  .btn.primary:hover{background:#243c52;}
   .btn.pill{border-radius:20px;}
-  .icon-btn{border:none;background:none;cursor:pointer;padding:4px;color:var(--muted);font-size:14px;}
-  .icon-btn:hover{color:var(--navy);}
+  .icon-btn{border:none;background:none;cursor:pointer;padding:10px;color:var(--muted);font-size:16px;min-width:40px;min-height:40px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;transition:background 0.15s;}
+  .icon-btn:hover{background:rgba(26,43,60,0.06);}
   .banner{background:#fff4de;border:1px solid #e8c98a;color:#5c4a1a;padding:10px 16px;font-size:13px;text-align:center;}
 </style>
 </head>
@@ -324,11 +327,11 @@ function renderItinerary(){
       <button class="icon-btn" style="position:absolute;top:12px;right:12px;color:var(--forest);" onclick="removeHike('${d.id}')" title="Remove this hike section">&#10005;</button>
       <div style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.4px;color:var(--forest);font-weight:700;margin-bottom:6px;">
         <span style="width:8px;height:8px;border-radius:50%;background:var(--forest);flex-shrink:0;"></span>
-        <input class="field" style="border:none;background:none;padding:0;font-size:11px;letter-spacing:0.4px;color:var(--forest);font-weight:700;text-transform:uppercase;width:auto;min-width:100px;flex:1;" value="${esc(d.hike_label || 'Highlighted hike')}" oninput="updateDay('${d.id}','hike_label',this.value)">
+        <input class="field" style="border:none;background:none;padding:0;font-size:16px;letter-spacing:0.4px;color:var(--forest);font-weight:700;text-transform:uppercase;width:auto;min-width:100px;flex:1;" value="${esc(d.hike_label || 'Highlighted hike')}" oninput="updateDay('${d.id}','hike_label',this.value)">
       </div>
       <input class="field heading" style="border:none;background:none;font-size:19px;color:var(--body);padding:0;margin-bottom:10px;padding-right:24px;" value="${esc(d.hike_name)}" oninput="updateDay('${d.id}','hike_name',this.value)">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${['hike_distance','hike_difficulty','hike_duration','hike_gain'].map(f => `<input class="field pill" style="width:auto;min-width:90px;border-radius:20px;text-align:center;font-size:13px;" value="${esc(d[f])}" oninput="updateDay('${d.id}','${f}',this.value)">`).join("")}
+        ${['hike_distance','hike_difficulty','hike_duration','hike_gain'].map(f => `<input class="field pill" style="width:auto;min-width:110px;border-radius:20px;text-align:center;font-size:16px;padding:8px 14px;" value="${esc(d[f])}" oninput="updateDay('${d.id}','${f}',this.value)">`).join("")}
       </div>
     </div>` : `<button class="btn" style="margin-bottom:20px;" onclick="updateDay('${d.id}','has_hike',true)">+ Add highlighted hike</button>`;
 
@@ -340,8 +343,8 @@ function renderItinerary(){
         <div style="flex:1;min-width:180px;">
           <input class="field heading" style="background:none;border:none;color:var(--cream);font-size:22px;padding:0;" value="${esc(d.title)}" oninput="updateDay('${d.id}','title',this.value)">
           <div style="display:flex;gap:6px;margin-top:6px;font-size:13px;color:#c9d3da;">
-            Start <input class="field" style="width:90px;background:rgba(255,255,255,0.1);border:none;color:var(--cream);" value="${esc(d.start_time)}" oninput="updateDay('${d.id}','start_time',this.value)">
-            &middot; Drive ~<input class="field" style="width:80px;background:rgba(255,255,255,0.1);border:none;color:var(--cream);" value="${esc(d.drive_time)}" oninput="updateDay('${d.id}','drive_time',this.value)">
+            Start <input class="field" style="width:120px;background:rgba(255,255,255,0.15);border:none;color:var(--cream);" value="${esc(d.start_time)}" oninput="updateDay('${d.id}','start_time',this.value)">
+            &middot; Drive ~<input class="field" style="width:110px;background:rgba(255,255,255,0.15);border:none;color:var(--cream);" value="${esc(d.drive_time)}" oninput="updateDay('${d.id}','drive_time',this.value)">
           </div>
         </div>
         <select class="field pill" style="width:auto;" onchange="updateDay('${d.id}','status',this.value)">
@@ -394,9 +397,9 @@ function renderActivityRow(d, a, ai){
 
   const sub = editing ? `
     <div style="padding:10px 0 2px 18px;">
-      <input class="field" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://..." style="margin-bottom:4px;font-size:15px;padding:8px;" value="${esc(a.link)}" oninput="updateActivity('${d.id}','${a.id}','link',this.value)">
-      ${a.link ? `<div style="margin-bottom:6px;">${linkDisplayHtml(a.link, '13px')}</div>` : ""}
-      <textarea class="field" rows="2" placeholder="Notes" style="font-size:15px;padding:8px;" oninput="updateActivity('${d.id}','${a.id}','notes',this.value)">${esc(a.notes)}</textarea>
+      <input class="field" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://..." style="margin-bottom:6px;font-size:16px;" value="${esc(a.link)}" oninput="updateActivity('${d.id}','${a.id}','link',this.value)">
+      ${a.link ? `<div style="margin-bottom:6px;">${linkDisplayHtml(a.link, '14px')}</div>` : ""}
+      <textarea class="field" rows="2" placeholder="Notes" style="font-size:16px;" oninput="updateActivity('${d.id}','${a.id}','notes',this.value)">${esc(a.notes)}</textarea>
     </div>` : ((a.link || a.notes) ? `
     <div style="padding:8px 0 2px 18px;font-size:14px;color:var(--muted);">
       ${a.link ? `<div style="margin-bottom:4px;">${linkDisplayHtml(a.link, '14px')}</div>` : ""}
@@ -520,23 +523,23 @@ function renderTaskCard(t){
     : `<span style="font-style:italic;color:var(--mlabel);font-size:13px;">Unassigned</span>`;
   const sub = flags.expanded ? `
     <div style="margin-top:8px;">
-      <input class="field" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://..." style="margin-bottom:4px;font-size:13px;" value="${esc(t.link)}" oninput="updateTask('${t.id}','link',this.value)">
-      ${t.link ? `<div style="margin-bottom:6px;">${linkDisplayHtml(t.link, '12px')}</div>` : ""}
-      <textarea class="field" rows="2" placeholder="Notes" style="font-size:13px;" oninput="updateTask('${t.id}','notes',this.value)">${esc(t.notes)}</textarea>
+      <input class="field" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://..." style="margin-bottom:6px;font-size:16px;" value="${esc(t.link)}" oninput="updateTask('${t.id}','link',this.value)">
+      ${t.link ? `<div style="margin-bottom:6px;">${linkDisplayHtml(t.link, '13px')}</div>` : ""}
+      <textarea class="field" rows="2" placeholder="Notes" style="font-size:16px;" oninput="updateTask('${t.id}','notes',this.value)">${esc(t.notes)}</textarea>
     </div>` : "";
 
   return `<div class="card" style="border-left:4px solid ${priorityColor(t.priority)};padding:12px 14px;margin-bottom:10px;">
     <div style="display:flex;align-items:center;gap:6px;">
-      <input class="field" style="border:none;flex:1;font-weight:600;font-size:14px;padding:2px 0;" value="${esc(t.title)}" oninput="updateTask('${t.id}','title',this.value)">
+      <input class="field" style="border:none;flex:1;font-weight:600;font-size:16px;padding:4px 0;" value="${esc(t.title)}" oninput="updateTask('${t.id}','title',this.value)">
       <button class="icon-btn" onclick="toggleFlag('${t.id}','expanded')">${flags.expanded ? '&#9650;' : '&#9660;'}</button>
       <button class="icon-btn" style="color:var(--high);" onclick="deleteTask('${t.id}')">&#128465;</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap;">
       <input class="field" style="width:auto;flex:1;min-width:90px;border:none;background:none;padding:2px 0;" value="${esc(t.owner)}" placeholder="Assign to..." oninput="updateTask('${t.id}','owner',this.value)">
-      <input type="date" class="field" style="width:auto;font-size:12px;" value="${esc(t.due_date)}" oninput="updateTask('${t.id}','due_date',this.value)">
+      <input type="date" class="field" style="width:auto;font-size:16px;" value="${esc(t.due_date)}" oninput="updateTask('${t.id}','due_date',this.value)">
     </div>
     <div style="margin-bottom:8px;">
-      <select class="field pill" style="width:auto;background:${priorityBg(t.priority)};color:${priorityColor(t.priority)};font-weight:600;font-size:12px;border:none;" onchange="updateTask('${t.id}','priority',this.value)">
+      <select class="field pill" style="width:auto;background:${priorityBg(t.priority)};color:${priorityColor(t.priority)};font-weight:600;font-size:16px;border:none;padding:8px 14px;" onchange="updateTask('${t.id}','priority',this.value)">
         ${['low','medium','high'].map(p => `<option value="${p}" ${t.priority===p?'selected':''}>${p.toUpperCase()}</option>`).join("")}
       </select>
     </div>
