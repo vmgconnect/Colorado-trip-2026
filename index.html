@@ -301,11 +301,13 @@ function renderItinerary(){
   const activities = d.activities.map((a,ai) => renderActivityRow(d, a, ai)).join("");
 
   const hikeBlock = d.has_hike ? `
-    <div style="background:var(--low-bg);border-radius:8px;padding:16px 20px;margin-bottom:20px;">
+    <div style="background:var(--low-bg);border-radius:8px;padding:16px 20px;margin-bottom:20px;position:relative;">
+      <button class="icon-btn" style="position:absolute;top:12px;right:12px;color:var(--forest);" onclick="removeHike('${d.id}')" title="Remove this hike section">&#10005;</button>
       <div style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.4px;color:var(--forest);font-weight:700;margin-bottom:6px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--forest);"></span>HIGHLIGHTED HIKE
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--forest);flex-shrink:0;"></span>
+        <input class="field" style="border:none;background:none;padding:0;font-size:11px;letter-spacing:0.4px;color:var(--forest);font-weight:700;text-transform:uppercase;width:auto;min-width:100px;flex:1;" value="${esc(d.hike_label || 'Highlighted hike')}" oninput="updateDay('${d.id}','hike_label',this.value)">
       </div>
-      <input class="field heading" style="border:none;background:none;font-size:19px;color:var(--body);padding:0;margin-bottom:10px;" value="${esc(d.hike_name)}" oninput="updateDay('${d.id}','hike_name',this.value)">
+      <input class="field heading" style="border:none;background:none;font-size:19px;color:var(--body);padding:0;margin-bottom:10px;padding-right:24px;" value="${esc(d.hike_name)}" oninput="updateDay('${d.id}','hike_name',this.value)">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         ${['hike_distance','hike_difficulty','hike_duration','hike_gain'].map(f => `<input class="field pill" style="width:auto;min-width:90px;border-radius:20px;text-align:center;font-size:13px;" value="${esc(d[f])}" oninput="updateDay('${d.id}','${f}',this.value)">`).join("")}
       </div>
@@ -346,6 +348,14 @@ function renderItinerary(){
       </div>
     </div>
   `;
+}
+
+function removeHike(dayId){
+  const d = state.days.find(x => x.id === dayId);
+  d.has_hike = false;
+  d.hike_name = ""; d.hike_distance = ""; d.hike_difficulty = ""; d.hike_duration = ""; d.hike_gain = ""; d.hike_label = "";
+  scheduleSave();
+  render();
 }
 
 function infoField(d, field, label){
