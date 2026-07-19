@@ -120,6 +120,7 @@ function seedState(){
 let state = null;
 let uiFlags = {}; // transient: { [rowId]: { editing:bool, expanded:bool } }
 let saveTimer = null;
+let uploadingId = null; // dayId currently uploading a photo, or null
 
 async function loadState(){
   if (cloudMode){
@@ -267,6 +268,22 @@ function renderDashboard(){
 function goToDay(i){ state.activeDay = i; state.activeTab = 'itinerary'; render(); }
 function setTab(t){ state.activeTab = t; render(); }
 
+function photoBox(d){
+  const hasPhoto = !!d.photo_url;
+  const uploading = uploadingId === d.id;
+  const inner = hasPhoto
+    ? `<img src="${esc(d.photo_url)}" style="width:100%;height:100%;object-fit:cover;">`
+    : `<span style="font-size:11px;color:#9fb0bb;padding:0 6px;">+ Add photo</span>`;
+  const overlay = uploading
+    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;text-align:center;">Uploading&hellip;</div>` : "";
+  return `<div>
+    <div style="width:80px;height:80px;border:2px dashed rgba(255,255,255,0.3);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;overflow:hidden;position:relative;" onclick="document.getElementById('photo-input-${d.id}').click()" title="Click to upload a photo for this day">
+      ${inner}${overlay}
+    </div>
+    <input type="file" accept="image/*" id="photo-input-${d.id}" style="display:none;" onchange="handlePhotoUpload('${d.id}', this)">
+  </div>`;
+}
+
 function renderItinerary(){
   const mapIcon = `<span style="width:16px;height:16px;border:2.5px solid var(--gold);border-radius:2px;"></span>`;
   const dayPills = state.days.map((d,i) => {
@@ -298,7 +315,7 @@ function renderItinerary(){
     <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;">${dayPills}</div>
     <div class="card" style="overflow:hidden;">
       <div style="background:var(--navy);color:var(--cream);padding:20px 22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-        <div style="width:80px;height:80px;border:2px dashed rgba(255,255,255,0.3);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9fb0bb;text-align:center;">photo</div>
+        ${photoBox(d)}
         <div style="flex:1;min-width:180px;">
           <input class="field heading" style="background:none;border:none;color:var(--cream);font-size:22px;padding:0;" value="${esc(d.title)}" oninput="updateDay('${d.id}','title',this.value)">
           <div style="display:flex;gap:6px;margin-top:6px;font-size:13px;color:#c9d3da;">
@@ -375,6 +392,35 @@ function updateDay(dayId, field, value){
   d[field] = value;
   scheduleSave();
   if (field === 'status' || field === 'has_hike') render();
+}
+
+async function handlePhotoUpload(dayId, inputEl){
+  const file = inputEl.files && inputEl.files[0];
+  if (!file) return;
+  if (!cloudMode){
+    alert("Photo upload needs the shared database connected. Everything else works locally, but photos need Supabase storage to be set up first.");
+    inputEl.value = "";
+    return;
+  }
+  uploadingId = dayId;
+  render();
+  try{
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${dayId}-${Date.now()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('trip-photos').upload(path, file, { upsert: true, cacheControl: '3600' });
+    if (upErr) throw upErr;
+    const { data } = sb.storage.from('trip-photos').getPublicUrl(path);
+    const d = state.days.find(x => x.id === dayId);
+    d.photo_url = data.publicUrl;
+    scheduleSave();
+  } catch(e){
+    console.error(e);
+    alert("Photo upload failed: " + e.message + "\n\nMake sure the trip-photos storage bucket has been created in Supabase (see PHOTO-SETUP.md).");
+  } finally {
+    uploadingId = null;
+    inputEl.value = "";
+    render();
+  }
 }
 
 function addActivity(dayId){
